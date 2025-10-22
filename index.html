@@ -4,14 +4,287 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenAI Material Selector</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="app.js"></script>
+    
+    <script type="module">
+        import React, { useState } from 'https://esm.sh/react@18';
+        import ReactDOM from 'https://esm.sh/react-dom@18';
+        import * as LucideReact from 'https://esm.sh/lucide-react@0.263.1';
+
+        const { Search, Recycle, Zap, Droplets, ThermometerSun, Shield, Leaf, AlertCircle, CheckCircle2, TrendingUp } = LucideReact;
+
+        const MaterialSelector = () => {
+          const [requirements, setRequirements] = React.useState({
+            application: '',
+            temperature: '',
+            environment: '',
+            strength: '',
+            sustainability: false,
+            recyclable: false
+          });
+          
+          const [results, setResults] = React.useState(null);
+          const [loading, setLoading] = React.useState(false);
+
+          const materialDatabase = {
+            metals: [
+              { name: 'Aluminum 6061', strength: 'Medium', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['aerospace', 'automotive', 'structural'] },
+              { name: 'Stainless Steel 316', strength: 'High', temp: 'Up to 800°C', corrosion: 'Excellent', recyclable: true, sustainability: 85, cost: 'High', weight: 'Heavy', applications: ['marine', 'chemical', 'food processing'] },
+              { name: 'Titanium Ti-6Al-4V', strength: 'Very High', temp: 'Up to 400°C', corrosion: 'Excellent', recyclable: true, sustainability: 70, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'marine'] },
+              { name: 'Carbon Steel A36', strength: 'High', temp: 'Up to 425°C', corrosion: 'Poor', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Heavy', applications: ['construction', 'structural', 'industrial'] }
+            ],
+            polymers: [
+              { name: 'PLA (Bioplastic)', strength: 'Low', temp: 'Up to 60°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Low', weight: 'Light', applications: ['packaging', '3d printing', 'consumer goods'] },
+              { name: 'PEEK', strength: 'High', temp: 'Up to 260°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'automotive'] },
+              { name: 'Recycled PET', strength: 'Medium', temp: 'Up to 70°C', corrosion: 'Excellent', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Light', applications: ['packaging', 'textiles', 'containers'] },
+              { name: 'Nylon 6/6', strength: 'Medium', temp: 'Up to 120°C', corrosion: 'Good', recyclable: true, sustainability: 60, cost: 'Medium', weight: 'Light', applications: ['automotive', 'industrial', 'consumer goods'] }
+            ],
+            composites: [
+              { name: 'Carbon Fiber Composite', strength: 'Very High', temp: 'Up to 150°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Very Light', applications: ['aerospace', 'automotive', 'sports equipment'] },
+              { name: 'Flax Fiber Composite', strength: 'Medium', temp: 'Up to 100°C', corrosion: 'Good', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['automotive', 'consumer goods', 'furniture'] },
+              { name: 'Glass Fiber Composite', strength: 'High', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: false, sustainability: 50, cost: 'Medium', weight: 'Light', applications: ['marine', 'automotive', 'construction'] }
+            ]
+          };
+
+          const analyzeRequirements = () => {
+            setLoading(true);
+            
+            setTimeout(() => {
+              const allMaterials = [...materialDatabase.metals, ...materialDatabase.polymers, ...materialDatabase.composites];
+              
+              const scored = allMaterials.map(material => {
+                let score = 0;
+                let reasons = [];
+
+                if (requirements.application) {
+                  const appMatch = material.applications.some(app => 
+                    app.toLowerCase().includes(requirements.application.toLowerCase()) ||
+                    requirements.application.toLowerCase().includes(app)
+                  );
+                  if (appMatch) {
+                    score += 30;
+                    reasons.push('Suitable for application');
+                  }
+                }
+
+                if (requirements.strength) {
+                  const strengthMap = { low: 1, medium: 2, high: 3, 'very high': 4 };
+                  const reqStrength = strengthMap[requirements.strength.toLowerCase()] || 0;
+                  const matStrength = strengthMap[material.strength.toLowerCase()] || 0;
+                  
+                  if (matStrength >= reqStrength) {
+                    score += 25;
+                    reasons.push('Meets strength requirements');
+                  }
+                }
+
+                if (requirements.environment === 'corrosive' && material.corrosion === 'Excellent') {
+                  score += 20;
+                  reasons.push('Excellent corrosion resistance');
+                }
+
+                if (requirements.sustainability && material.sustainability >= 80) {
+                  score += 15;
+                  reasons.push('High sustainability rating');
+                }
+
+                if (requirements.recyclable && material.recyclable) {
+                  score += 10;
+                  reasons.push('Fully recyclable');
+                }
+
+                return { ...material, score, reasons };
+              });
+
+              const topMaterials = scored
+                .filter(m => m.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+
+              setResults(topMaterials);
+              setLoading(false);
+            }, 1500);
+          };
+
+          return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6" },
+            React.createElement('div', { className: "max-w-7xl mx-auto" },
+              React.createElement('header', { className: "text-center mb-8" },
+                React.createElement('div', { className: "flex items-center justify-center gap-3 mb-3" },
+                  React.createElement(Zap, { className: "w-10 h-10 text-blue-400" }),
+                  React.createElement('h1', { className: "text-4xl font-bold text-white" }, 'GenAI Material Selector')
+                ),
+                React.createElement('p', { className: "text-blue-200 text-lg" }, 'Intelligent material selection powered by AI-driven analysis')
+              ),
+              React.createElement('div', { className: "grid lg:grid-cols-2 gap-6" },
+                React.createElement('div', { className: "bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20" },
+                  React.createElement('h2', { className: "text-2xl font-bold text-white mb-6 flex items-center gap-2" },
+                    React.createElement(Search, { className: "w-6 h-6 text-blue-400" }),
+                    'Project Requirements'
+                  ),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('div', null,
+                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Application Type'),
+                      React.createElement('input', {
+                        type: 'text',
+                        placeholder: 'e.g., aerospace, automotive, marine, medical',
+                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 transition",
+                        value: requirements.application,
+                        onChange: (e) => setRequirements({...requirements, application: e.target.value})
+                      })
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Operating Temperature'),
+                      React.createElement('select', {
+                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
+                        value: requirements.temperature,
+                        onChange: (e) => setRequirements({...requirements, temperature: e.target.value})
+                      },
+                        React.createElement('option', { value: "" }, 'Select temperature range'),
+                        React.createElement('option', { value: "low" }, 'Low (less than 100°C)'),
+                        React.createElement('option', { value: "medium" }, 'Medium (100-300°C)'),
+                        React.createElement('option', { value: "high" }, 'High (greater than 300°C)')
+                      )
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Environmental Conditions'),
+                      React.createElement('select', {
+                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
+                        value: requirements.environment,
+                        onChange: (e) => setRequirements({...requirements, environment: e.target.value})
+                      },
+                        React.createElement('option', { value: "" }, 'Select environment'),
+                        React.createElement('option', { value: "normal" }, 'Normal (Indoor/Dry)'),
+                        React.createElement('option', { value: "humid" }, 'Humid'),
+                        React.createElement('option', { value: "corrosive" }, 'Corrosive'),
+                        React.createElement('option', { value: "marine" }, 'Marine')
+                      )
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Required Strength'),
+                      React.createElement('select', {
+                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
+                        value: requirements.strength,
+                        onChange: (e) => setRequirements({...requirements, strength: e.target.value})
+                      },
+                        React.createElement('option', { value: "" }, 'Select strength level'),
+                        React.createElement('option', { value: "low" }, 'Low'),
+                        React.createElement('option', { value: "medium" }, 'Medium'),
+                        React.createElement('option', { value: "high" }, 'High'),
+                        React.createElement('option', { value: "very high" }, 'Very High')
+                      )
+                    ),
+                    React.createElement('div', { className: "space-y-3" },
+                      React.createElement('label', { className: "flex items-center gap-3 text-white cursor-pointer" },
+                        React.createElement('input', {
+                          type: 'checkbox',
+                          className: "w-5 h-5 rounded accent-green-500",
+                          checked: requirements.sustainability,
+                          onChange: (e) => setRequirements({...requirements, sustainability: e.target.checked})
+                        }),
+                        React.createElement(Leaf, { className: "w-5 h-5 text-green-400" }),
+                        React.createElement('span', null, 'Prioritize sustainable materials')
+                      ),
+                      React.createElement('label', { className: "flex items-center gap-3 text-white cursor-pointer" },
+                        React.createElement('input', {
+                          type: 'checkbox',
+                          className: "w-5 h-5 rounded accent-blue-500",
+                          checked: requirements.recyclable,
+                          onChange: (e) => setRequirements({...requirements, recyclable: e.target.checked})
+                        }),
+                        React.createElement(Recycle, { className: "w-5 h-5 text-blue-400" }),
+                        React.createElement('span', null, 'Must be recyclable')
+                      )
+                    ),
+                    React.createElement('button', {
+                      onClick: analyzeRequirements,
+                      className: "w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center gap-2",
+                      disabled: loading
+                    },
+                      loading ?
+                        React.createElement(React.Fragment, null,
+                          React.createElement('div', { className: "w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" }),
+                          'Analyzing Materials...'
+                        ) :
+                        React.createElement(React.Fragment, null,
+                          React.createElement(Search, { className: "w-5 h-5" }),
+                          'Find Suitable Materials'
+                        )
+                    )
+                  )
+                ),
+                React.createElement('div', { className: "bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20" },
+                  React.createElement('h2', { className: "text-2xl font-bold text-white mb-6 flex items-center gap-2" },
+                    React.createElement(TrendingUp, { className: "w-6 h-6 text-green-400" }),
+                    'Recommended Materials'
+                  ),
+                  !results ?
+                    React.createElement('div', { className: "text-center py-12" },
+                      React.createElement(AlertCircle, { className: "w-16 h-16 text-white/30 mx-auto mb-4" }),
+                      React.createElement('p', { className: "text-white/60 text-lg" }, 'Enter your requirements and click Find Suitable Materials to get AI-powered recommendations')
+                    ) :
+                    results.length === 0 ?
+                      React.createElement('div', { className: "text-center py-12" },
+                        React.createElement(AlertCircle, { className: "w-16 h-16 text-yellow-400 mx-auto mb-4" }),
+                        React.createElement('p', { className: "text-white text-lg" }, 'No materials found matching your criteria. Try adjusting your requirements.')
+                      ) :
+                      React.createElement('div', { className: "space-y-4 max-h-[600px] overflow-y-auto pr-2" },
+                        results.map((material, index) =>
+                          React.createElement('div', { key: index, className: "bg-white/5 rounded-lg p-5 border border-white/10 hover:border-blue-400/50 transition" },
+                            React.createElement('div', { className: "flex items-start justify-between mb-3" },
+                              React.createElement('div', null,
+                                React.createElement('h3', { className: "text-xl font-bold text-white mb-1" }, material.name),
+                                React.createElement('div', { className: "flex items-center gap-2" },
+                                  React.createElement('div', { className: "bg-blue-500/20 px-3 py-1 rounded-full" },
+                                    React.createElement('span', { className: "text-blue-300 text-sm font-medium" }, `Match: ${material.score}%`)
+                                  ),
+                                  material.recyclable && React.createElement(Recycle, { className: "w-5 h-5 text-green-400", title: "Recyclable" })
+                                )
+                              ),
+                              React.createElement(CheckCircle2, { className: "w-6 h-6 text-green-400" })
+                            ),
+                            React.createElement('div', { className: "grid grid-cols-2 gap-3 mb-3" },
+                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
+                                React.createElement(Shield, { className: "w-4 h-4 text-blue-400" }),
+                                React.createElement('span', { className: "text-sm" }, `Strength: ${material.strength}`)
+                              ),
+                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
+                                React.createElement(ThermometerSun, { className: "w-4 h-4 text-orange-400" }),
+                                React.createElement('span', { className: "text-sm" }, material.temp)
+                              ),
+                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
+                                React.createElement(Droplets, { className: "w-4 h-4 text-cyan-400" }),
+                                React.createElement('span', { className: "text-sm" }, `Corrosion: ${material.corrosion}`)
+                              ),
+                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
+                                React.createElement(Leaf, { className: "w-4 h-4 text-green-400" }),
+                                React.createElement('span', { className: "text-sm" }, `Sustainability: ${material.sustainability}%`)
+                              )
+                            ),
+                            React.createElement('div', { className: "mb-3" },
+                              React.createElement('p', { className: "text-white/60 text-sm mb-2" }, 'Why this material:'),
+                              React.createElement('div', { className: "flex flex-wrap gap-2" },
+                                material.reasons.map((reason, i) =>
+                                  React.createElement('span', { key: i, className: "bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs" }, reason)
+                                )
+                              )
+                            ),
+                            React.createElement('div', { className: "flex items-center justify-between text-sm" },
+                              React.createElement('span', { className: "text-white/60" }, 'Cost: ', React.createElement('span', { className: "text-white" }, material.cost)),
+                              React.createElement('span', { className: "text-white/60" }, 'Weight: ', React.createElement('span', { className: "text-white" }, material.weight))
+                            )
+                          )
+                        )
+                      )
+                )
+              )
+            )
+          );
+        };
+
+        ReactDOM.render(React.createElement(MaterialSelector), document.getElementById('root'));
+    </script>
 </body>
 </html>
