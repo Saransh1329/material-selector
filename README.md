@@ -12,7 +12,7 @@ An intelligent material selection tool powered by AI-driven analysis for design 
 
 ## Demo
 
-[Live Demo](https://your-username.github.io/material-selector)
+[Live Demo](https://Saransh129.github.io/material-selector)
 
 ## Usage
 
