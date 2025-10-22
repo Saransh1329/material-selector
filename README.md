@@ -23,6 +23,9 @@ Simply open `index.html` in your browser or visit the live demo link.
 - React 18
 - Tailwind CSS
 - Lucide Icons
+- AI/ML
+- GenAI
+
 
 ## License
 
