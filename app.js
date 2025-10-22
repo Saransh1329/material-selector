@@ -1,5 +1,5 @@
-const { useState } = React;
-const { Search, Recycle, Zap, Droplets, ThermometerSun, Shield, Leaf, AlertCircle, CheckCircle2, TrendingUp } = lucide;
+import React, { useState } from 'react';
+import { Search, Recycle, Zap, Droplets, ThermometerSun, Shield, Leaf, AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 
 const MaterialSelector = () => {
   const [requirements, setRequirements] = useState({
@@ -94,6 +94,11 @@ const MaterialSelector = () => {
     }, 1500);
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    analyzeRequirements();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
@@ -112,7 +117,7 @@ const MaterialSelector = () => {
               Project Requirements
             </h2>
 
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-white mb-2 font-medium">Application Type</label>
                 <input
@@ -132,9 +137,9 @@ const MaterialSelector = () => {
                   onChange={(e) => setRequirements({...requirements, temperature: e.target.value})}
                 >
                   <option value="">Select temperature range</option>
-                  <option value="low">Low (less than 100°C)</option>
+                  <option value="low">Low (&lt; 100°C)</option>
                   <option value="medium">Medium (100-300°C)</option>
-                  <option value="high">High (greater than 300°C)</option>
+                  <option value="high">High (&gt; 300°C)</option>
                 </select>
               </div>
 
@@ -193,7 +198,7 @@ const MaterialSelector = () => {
               </div>
 
               <button
-                onClick={analyzeRequirements}
+                type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center gap-2"
                 disabled={loading}
               >
@@ -209,7 +214,7 @@ const MaterialSelector = () => {
                   </>
                 )}
               </button>
-            </div>
+            </form>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
@@ -221,7 +226,7 @@ const MaterialSelector = () => {
             {!results ? (
               <div className="text-center py-12">
                 <AlertCircle className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                <p className="text-white/60 text-lg">Enter your requirements and click Find Suitable Materials to get AI-powered recommendations</p>
+                <p className="text-white/60 text-lg">Enter your requirements and click "Find Suitable Materials" to get AI-powered recommendations</p>
               </div>
             ) : results.length === 0 ? (
               <div className="text-center py-12">
@@ -325,4 +330,4 @@ const MaterialSelector = () => {
   );
 };
 
-ReactDOM.render(<MaterialSelector />, document.getElementById('root'));
+export default MaterialSelector;
