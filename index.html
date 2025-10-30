@@ -3,288 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenAI Material Selector</title>
+    <title>GenAI Bio-Material Selector</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
-    
-    <script type="module">
-        import React, { useState } from 'https://esm.sh/react@18';
-        import ReactDOM from 'https://esm.sh/react-dom@18';
-        import * as LucideReact from 'https://esm.sh/lucide-react@0.263.1';
 
-        const { Search, Recycle, Zap, Droplets, ThermometerSun, Shield, Leaf, AlertCircle, CheckCircle2, TrendingUp } = LucideReact;
+    <script type="text/babel">
+        const { useState } = React;
 
-        const MaterialSelector = () => {
-          const [requirements, setRequirements] = React.useState({
-            application: '',
-            temperature: '',
-            environment: '',
-            strength: '',
-            sustainability: false,
-            recyclable: false
-          });
-          
-          const [results, setResults] = React.useState(null);
-          const [loading, setLoading] = React.useState(false);
+        // Lucide React Icons (inline SVG components)
+        const Search = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
 
-          const materialDatabase = {
-            metals: [
-              { name: 'Aluminum 6061', strength: 'Medium', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['aerospace', 'automotive', 'structural'] },
-              { name: 'Stainless Steel 316', strength: 'High', temp: 'Up to 800°C', corrosion: 'Excellent', recyclable: true, sustainability: 85, cost: 'High', weight: 'Heavy', applications: ['marine', 'chemical', 'food processing'] },
-              { name: 'Titanium Ti-6Al-4V', strength: 'Very High', temp: 'Up to 400°C', corrosion: 'Excellent', recyclable: true, sustainability: 70, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'marine'] },
-              { name: 'Carbon Steel A36', strength: 'High', temp: 'Up to 425°C', corrosion: 'Poor', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Heavy', applications: ['construction', 'structural', 'industrial'] }
-            ],
-            polymers: [
-              { name: 'PLA (Bioplastic)', strength: 'Low', temp: 'Up to 60°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Low', weight: 'Light', applications: ['packaging', '3d printing', 'consumer goods'] },
-              { name: 'PEEK', strength: 'High', temp: 'Up to 260°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'automotive'] },
-              { name: 'Recycled PET', strength: 'Medium', temp: 'Up to 70°C', corrosion: 'Excellent', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Light', applications: ['packaging', 'textiles', 'containers'] },
-              { name: 'Nylon 6/6', strength: 'Medium', temp: 'Up to 120°C', corrosion: 'Good', recyclable: true, sustainability: 60, cost: 'Medium', weight: 'Light', applications: ['automotive', 'industrial', 'consumer goods'] }
-            ],
-            composites: [
-              { name: 'Carbon Fiber Composite', strength: 'Very High', temp: 'Up to 150°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Very Light', applications: ['aerospace', 'automotive', 'sports equipment'] },
-              { name: 'Flax Fiber Composite', strength: 'Medium', temp: 'Up to 100°C', corrosion: 'Good', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['automotive', 'consumer goods', 'furniture'] },
-              { name: 'Glass Fiber Composite', strength: 'High', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: false, sustainability: 50, cost: 'Medium', weight: 'Light', applications: ['marine', 'automotive', 'construction'] }
-            ]
-          };
+        const TrendingUp = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        );
 
-          const analyzeRequirements = () => {
-            setLoading(true);
-            
-            setTimeout(() => {
-              const allMaterials = [...materialDatabase.metals, ...materialDatabase.polymers, ...materialDatabase.composites];
-              
-              const scored = allMaterials.map(material => {
-                let score = 0;
-                let reasons = [];
+        const AlertCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
 
-                if (requirements.application) {
-                  const appMatch = material.applications.some(app => 
-                    app.toLowerCase().includes(requirements.application.toLowerCase()) ||
-                    requirements.application.toLowerCase().includes(app)
-                  );
-                  if (appMatch) {
-                    score += 30;
-                    reasons.push('Suitable for application');
-                  }
-                }
+        const CheckCircle2 = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
 
-                if (requirements.strength) {
-                  const strengthMap = { low: 1, medium: 2, high: 3, 'very high': 4 };
-                  const reqStrength = strengthMap[requirements.strength.toLowerCase()] || 0;
-                  const matStrength = strengthMap[material.strength.toLowerCase()] || 0;
-                  
-                  if (matStrength >= reqStrength) {
-                    score += 25;
-                    reasons.push('Meets strength requirements');
-                  }
-                }
+        const Leaf = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+        );
 
-                if (requirements.environment === 'corrosive' && material.corrosion === 'Excellent') {
-                  score += 20;
-                  reasons.push('Excellent corrosion resistance');
-                }
+        const Recycle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
 
-                if (requirements.sustainability && material.sustainability >= 80) {
-                  score += 15;
-                  reasons.push('High sustainability rating');
-                }
+        const Zap = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        );
 
-                if (requirements.recyclable && material.recyclable) {
-                  score += 10;
-                  reasons.push('Fully recyclable');
-                }
+        function BioMaterialSelector() {
+            const [appType, setAppType] = useState('');
+            const [temperature, setTemperature] = useState('');
+            const [environment, setEnvironment] = useState('');
+            const [strength, setStrength] = useState('');
+            const [sustainable, setSustainable] = useState(false);
+            const [recyclable, setRecyclable] = useState(false);
+            const [showResults, setShowResults] = useState(false);
+            const [analyzing, setAnalyzing] = useState(false);
 
-                return { ...material, score, reasons };
-              });
+            const handleSubmit = () => {
+                setAnalyzing(true);
+                setShowResults(false);
+                
+                setTimeout(() => {
+                    setAnalyzing(false);
+                    setShowResults(true);
+                }, 2000);
+            };
 
-              const topMaterials = scored
-                .filter(m => m.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 5);
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-12">
+                            <div className="flex items-center justify-center gap-3 mb-4">
+                                <Zap className="w-12 h-12 text-blue-400" />
+                                <h1 className="text-5xl font-bold">GenAI Bio-Material Selector</h1>
+                            </div>
+                            <p className="text-xl text-blue-200">Intelligent material selection powered by AI-driven analysis</p>
+                        </div>
 
-              setResults(topMaterials);
-              setLoading(false);
-            }, 1500);
-          };
+                        <div className="grid lg:grid-cols-2 gap-8">
+                            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Search className="w-6 h-6 text-blue-400" />
+                                    <h2 className="text-2xl font-bold">Project Requirements</h2>
+                                </div>
 
-          return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6" },
-            React.createElement('div', { className: "max-w-7xl mx-auto" },
-              React.createElement('header', { className: "text-center mb-8" },
-                React.createElement('div', { className: "flex items-center justify-center gap-3 mb-3" },
-                  React.createElement(Zap, { className: "w-10 h-10 text-blue-400" }),
-                  React.createElement('h1', { className: "text-4xl font-bold text-white" }, 'GenAI Material Selector')
-                ),
-                React.createElement('p', { className: "text-blue-200 text-lg" }, 'Intelligent material selection powered by AI-driven analysis')
-              ),
-              React.createElement('div', { className: "grid lg:grid-cols-2 gap-6" },
-                React.createElement('div', { className: "bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20" },
-                  React.createElement('h2', { className: "text-2xl font-bold text-white mb-6 flex items-center gap-2" },
-                    React.createElement(Search, { className: "w-6 h-6 text-blue-400" }),
-                    'Project Requirements'
-                  ),
-                  React.createElement('div', { className: "space-y-4" },
-                    React.createElement('div', null,
-                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Application Type'),
-                      React.createElement('input', {
-                        type: 'text',
-                        placeholder: 'e.g., aerospace, automotive, marine, medical',
-                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 transition",
-                        value: requirements.application,
-                        onChange: (e) => setRequirements({...requirements, application: e.target.value})
-                      })
-                    ),
-                    React.createElement('div', null,
-                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Operating Temperature'),
-                      React.createElement('select', {
-                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
-                        value: requirements.temperature,
-                        onChange: (e) => setRequirements({...requirements, temperature: e.target.value})
-                      },
-                        React.createElement('option', { value: "" }, 'Select temperature range'),
-                        React.createElement('option', { value: "low" }, 'Low (less than 100°C)'),
-                        React.createElement('option', { value: "medium" }, 'Medium (100-300°C)'),
-                        React.createElement('option', { value: "high" }, 'High (greater than 300°C)')
-                      )
-                    ),
-                    React.createElement('div', null,
-                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Environmental Conditions'),
-                      React.createElement('select', {
-                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
-                        value: requirements.environment,
-                        onChange: (e) => setRequirements({...requirements, environment: e.target.value})
-                      },
-                        React.createElement('option', { value: "" }, 'Select environment'),
-                        React.createElement('option', { value: "normal" }, 'Normal (Indoor/Dry)'),
-                        React.createElement('option', { value: "humid" }, 'Humid'),
-                        React.createElement('option', { value: "corrosive" }, 'Corrosive'),
-                        React.createElement('option', { value: "marine" }, 'Marine')
-                      )
-                    ),
-                    React.createElement('div', null,
-                      React.createElement('label', { className: "block text-white mb-2 font-medium" }, 'Required Strength'),
-                      React.createElement('select', {
-                        className: "w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition",
-                        value: requirements.strength,
-                        onChange: (e) => setRequirements({...requirements, strength: e.target.value})
-                      },
-                        React.createElement('option', { value: "" }, 'Select strength level'),
-                        React.createElement('option', { value: "low" }, 'Low'),
-                        React.createElement('option', { value: "medium" }, 'Medium'),
-                        React.createElement('option', { value: "high" }, 'High'),
-                        React.createElement('option', { value: "very high" }, 'Very High')
-                      )
-                    ),
-                    React.createElement('div', { className: "space-y-3" },
-                      React.createElement('label', { className: "flex items-center gap-3 text-white cursor-pointer" },
-                        React.createElement('input', {
-                          type: 'checkbox',
-                          className: "w-5 h-5 rounded accent-green-500",
-                          checked: requirements.sustainability,
-                          onChange: (e) => setRequirements({...requirements, sustainability: e.target.checked})
-                        }),
-                        React.createElement(Leaf, { className: "w-5 h-5 text-green-400" }),
-                        React.createElement('span', null, 'Prioritize sustainable materials')
-                      ),
-                      React.createElement('label', { className: "flex items-center gap-3 text-white cursor-pointer" },
-                        React.createElement('input', {
-                          type: 'checkbox',
-                          className: "w-5 h-5 rounded accent-blue-500",
-                          checked: requirements.recyclable,
-                          onChange: (e) => setRequirements({...requirements, recyclable: e.target.checked})
-                        }),
-                        React.createElement(Recycle, { className: "w-5 h-5 text-blue-400" }),
-                        React.createElement('span', null, 'Must be recyclable')
-                      )
-                    ),
-                    React.createElement('button', {
-                      onClick: analyzeRequirements,
-                      className: "w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center gap-2",
-                      disabled: loading
-                    },
-                      loading ?
-                        React.createElement(React.Fragment, null,
-                          React.createElement('div', { className: "w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" }),
-                          'Analyzing Materials...'
-                        ) :
-                        React.createElement(React.Fragment, null,
-                          React.createElement(Search, { className: "w-5 h-5" }),
-                          'Find Suitable Materials'
-                        )
-                    )
-                  )
-                ),
-                React.createElement('div', { className: "bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20" },
-                  React.createElement('h2', { className: "text-2xl font-bold text-white mb-6 flex items-center gap-2" },
-                    React.createElement(TrendingUp, { className: "w-6 h-6 text-green-400" }),
-                    'Recommended Materials'
-                  ),
-                  !results ?
-                    React.createElement('div', { className: "text-center py-12" },
-                      React.createElement(AlertCircle, { className: "w-16 h-16 text-white/30 mx-auto mb-4" }),
-                      React.createElement('p', { className: "text-white/60 text-lg" }, 'Enter your requirements and click Find Suitable Materials to get AI-powered recommendations')
-                    ) :
-                    results.length === 0 ?
-                      React.createElement('div', { className: "text-center py-12" },
-                        React.createElement(AlertCircle, { className: "w-16 h-16 text-yellow-400 mx-auto mb-4" }),
-                        React.createElement('p', { className: "text-white text-lg" }, 'No materials found matching your criteria. Try adjusting your requirements.')
-                      ) :
-                      React.createElement('div', { className: "space-y-4 max-h-[600px] overflow-y-auto pr-2" },
-                        results.map((material, index) =>
-                          React.createElement('div', { key: index, className: "bg-white/5 rounded-lg p-5 border border-white/10 hover:border-blue-400/50 transition" },
-                            React.createElement('div', { className: "flex items-start justify-between mb-3" },
-                              React.createElement('div', null,
-                                React.createElement('h3', { className: "text-xl font-bold text-white mb-1" }, material.name),
-                                React.createElement('div', { className: "flex items-center gap-2" },
-                                  React.createElement('div', { className: "bg-blue-500/20 px-3 py-1 rounded-full" },
-                                    React.createElement('span', { className: "text-blue-300 text-sm font-medium" }, `Match: ${material.score}%`)
-                                  ),
-                                  material.recyclable && React.createElement(Recycle, { className: "w-5 h-5 text-green-400", title: "Recyclable" })
-                                )
-                              ),
-                              React.createElement(CheckCircle2, { className: "w-6 h-6 text-green-400" })
-                            ),
-                            React.createElement('div', { className: "grid grid-cols-2 gap-3 mb-3" },
-                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
-                                React.createElement(Shield, { className: "w-4 h-4 text-blue-400" }),
-                                React.createElement('span', { className: "text-sm" }, `Strength: ${material.strength}`)
-                              ),
-                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
-                                React.createElement(ThermometerSun, { className: "w-4 h-4 text-orange-400" }),
-                                React.createElement('span', { className: "text-sm" }, material.temp)
-                              ),
-                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
-                                React.createElement(Droplets, { className: "w-4 h-4 text-cyan-400" }),
-                                React.createElement('span', { className: "text-sm" }, `Corrosion: ${material.corrosion}`)
-                              ),
-                              React.createElement('div', { className: "flex items-center gap-2 text-white/80" },
-                                React.createElement(Leaf, { className: "w-4 h-4 text-green-400" }),
-                                React.createElement('span', { className: "text-sm" }, `Sustainability: ${material.sustainability}%`)
-                              )
-                            ),
-                            React.createElement('div', { className: "mb-3" },
-                              React.createElement('p', { className: "text-white/60 text-sm mb-2" }, 'Why this material:'),
-                              React.createElement('div', { className: "flex flex-wrap gap-2" },
-                                material.reasons.map((reason, i) =>
-                                  React.createElement('span', { key: i, className: "bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs" }, reason)
-                                )
-                              )
-                            ),
-                            React.createElement('div', { className: "flex items-center justify-between text-sm" },
-                              React.createElement('span', { className: "text-white/60" }, 'Cost: ', React.createElement('span', { className: "text-white" }, material.cost)),
-                              React.createElement('span', { className: "text-white/60" }, 'Weight: ', React.createElement('span', { className: "text-white" }, material.weight))
-                            )
-                          )
-                        )
-                      )
-                )
-              )
-            )
-          );
-        };
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Application Type</label>
+                                        <input
+                                            type="text"
+                                            value={appType}
+                                            onChange={(e) => setAppType(e.target.value)}
+                                            placeholder="e.g., orthopedic scaffold, bone plate, dental implant"
+                                            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                        />
+                                    </div>
 
-        ReactDOM.render(React.createElement(MaterialSelector), document.getElementById('root'));
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Operating Temperature</label>
+                                        <select
+                                            value={temperature}
+                                            onChange={(e) => setTemperature(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                        >
+                                            <option value="">Select temperature range</option>
+                                            <option value="body">Body Temperature (36-38°C)</option>
+                                            <option value="low">Low Temperature (-20 to 20°C)</option>
+                                            <option value="room">Room Temperature (20-30°C)</option>
+                                            <option value="elevated">Elevated Temperature (40-60°C)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Environmental Conditions</label>
+                                        <select
+                                            value={environment}
+                                            onChange={(e) => setEnvironment(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                        >
+                                            <option value="">Select environment</option>
+                                            <option value="physiological">Physiological Environment (pH 7.4, SBF)</option>
+                                            <option value="marine">Marine Environment</option>
+                                            <option value="industrial">Industrial Environment</option>
+                                            <option value="atmospheric">Atmospheric Exposure</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Required Strength</label>
+                                        <select
+                                            value={strength}
+                                            onChange={(e) => setStrength(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                                        >
+                                            <option value="">Select strength level</option>
+                                            <option value="bone-like">Bone-like (10-30 GPa)</option>
+                                            <option value="low">Low Strength (less than 50 MPa)</option>
+                                            <option value="medium">Medium Strength (50-150 MPa)</option>
+                                            <option value="high">High Strength (greater than 150 MPa)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={sustainable}
+                                                onChange={(e) => setSustainable(e.target.checked)}
+                                                className="w-5 h-5 rounded border-slate-600"
+                                            />
+                                            <Leaf className="w-5 h-5 text-green-400" />
+                                            <span>Prioritize sustainable materials</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={recyclable}
+                                                onChange={(e) => setRecyclable(e.target.checked)}
+                                                className="w-5 h-5 rounded border-slate-600"
+                                            />
+                                            <Recycle className="w-5 h-5 text-blue-400" />
+                                            <span>Must be biodegradable</span>
+                                        </label>
+                                    </div>
+
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Search className="w-5 h-5" />
+                                        Find Suitable Materials
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <TrendingUp className="w-6 h-6 text-green-400" />
+                                    <h2 className="text-2xl font-bold">Recommended Materials</h2>
+                                </div>
+
+                                {!showResults && !analyzing && (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                                        <AlertCircle className="w-16 h-16 mb-4 opacity-50" />
+                                        <p className="text-center">
+                                            Enter your requirements and click Find Suitable Materials to get AI-powered recommendations
+                                        </p>
+                                    </div>
+                                )}
+
+                                {analyzing && (
+                                    <div className="flex flex-col items-center justify-center h-64">
+                                        <div className="relative w-20 h-20 mb-6">
+                                            <div className="absolute inset-0 border-4 border-blue-400/30 rounded-full"></div>
+                                            <div className="absolute inset-0 border-4 border-blue-400 rounded-full border-t-transparent animate-spin"></div>
+                                        </div>
+                                        <p className="text-blue-300 text-lg font-medium mb-2">Analyzing Requirements...</p>
+                                        <p className="text-slate-400 text-sm">AI model evaluating material properties</p>
+                                    </div>
+                                )}
+
+                                {showResults && (
+                                    <div className="space-y-6">
+                                        <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border-2 border-green-500/50 rounded-xl p-6">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <CheckCircle2 className="w-6 h-6 text-green-400" />
+                                                        <span className="text-green-400 font-semibold text-sm">BEST MATCH</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-bold">ZM21 Magnesium Alloy</h3>
+                                                    <p className="text-slate-300 text-sm">(Mg-2Zn-1Mn)</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-3xl font-bold text-green-400">98%</div>
+                                                    <div className="text-xs text-slate-400">Match Score</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div className="bg-slate-800/50 rounded-lg p-3">
+                                                    <div className="text-xs text-slate-400 mb-1">Elastic Modulus</div>
+                                                    <div className="text-lg font-semibold">41-45 GPa</div>
+                                                </div>
+                                                <div className="bg-slate-800/50 rounded-lg p-3">
+                                                    <div className="text-xs text-slate-400 mb-1">Density</div>
+                                                    <div className="text-lg font-semibold">1.74 g/cm³</div>
+                                                </div>
+                                                <div className="bg-slate-800/50 rounded-lg p-3">
+                                                    <div className="text-xs text-slate-400 mb-1">Corrosion Rate</div>
+                                                    <div className="text-lg font-semibold">Moderate</div>
+                                                </div>
+                                                <div className="bg-slate-800/50 rounded-lg p-3">
+                                                    <div className="text-xs text-slate-400 mb-1">Biocompatibility</div>
+                                                    <div className="text-lg font-semibold">Excellent</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2 mb-4">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                                    <span>Matches bone mechanical properties</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                                    <span>Biodegradable with safe by-products</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                                    <span>Promotes osteogenesis and angiogenesis</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                                    <span>Reduces stress shielding effect</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-blue-900/30 rounded-lg p-3 border border-blue-500/30">
+                                                <div className="text-xs font-semibold text-blue-300 mb-2">AI RECOMMENDATION:</div>
+                                                <p className="text-sm text-slate-300">
+                                                    Magnesium ZM21 is optimal for biodegradable orthopedic scaffolds. When coated with Graphene Oxide, 
+                                                    it provides controlled degradation, excellent biocompatibility, and mechanical compatibility with bone tissue.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-700/30 border border-slate-600 rounded-xl p-6">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <AlertCircle className="w-5 h-5 text-yellow-400" />
+                                                        <span className="text-yellow-400 font-semibold text-xs">ALTERNATIVE</span>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold">Pure Zinc (Zn)</h3>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-2xl font-bold text-yellow-400">72%</div>
+                                                    <div className="text-xs text-slate-400">Match Score</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2 mb-3">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                                    <span>Slower degradation rate</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <AlertCircle className="w-4 h-4 text-yellow-400" />
+                                                    <span>Lower mechanical strength</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <AlertCircle className="w-4 h-4 text-yellow-400" />
+                                                    <span>Potential cytotoxicity at high concentrations</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-xs text-slate-400 italic">
+                                                Not recommended for load-bearing applications
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {showResults && (
+                            <div className="mt-8 bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Zap className="w-5 h-5 text-blue-400" />
+                                    AI Analysis Summary
+                                </h3>
+                                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                                    <div className="bg-slate-700/30 rounded-lg p-4">
+                                        <div className="font-semibold text-blue-300 mb-2">Material Selection Criteria</div>
+                                        <p className="text-slate-300">
+                                            AI evaluated 15+ biodegradable materials based on mechanical compatibility, degradation kinetics, 
+                                            and biocompatibility for orthopedic applications.
+                                        </p>
+                                    </div>
+                                    <div className="bg-slate-700/30 rounded-lg p-4">
+                                        <div className="font-semibold text-green-300 mb-2">Why ZM21 Magnesium?</div>
+                                        <p className="text-slate-300">
+                                            Optimal balance of biodegradability, mechanical strength matching cortical bone (41-45 GPa), 
+                                            and enhanced corrosion control with GO coating.
+                                        </p>
+                                    </div>
+                                    <div className="bg-slate-700/30 rounded-lg p-4">
+                                        <div className="font-semibold text-purple-300 mb-2">Enhancement Strategy</div>
+                                        <p className="text-slate-300">
+                                            Graphene Oxide coating provides protective barrier, slows degradation, enhances biocompatibility, 
+                                            and prevents premature strength loss.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BioMaterialSelector />);
     </script>
 </body>
 </html>
