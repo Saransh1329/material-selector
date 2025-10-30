@@ -1,328 +1,300 @@
-const { useState } = React;
-const { Search, Recycle, Zap, Droplets, ThermometerSun, Shield, Leaf, AlertCircle, CheckCircle2, TrendingUp } = lucide;
+import React, { useState } from 'react';
+import { Search, TrendingUp, AlertCircle, CheckCircle2, Leaf, Recycle, Zap } from 'lucide-react';
+import './App.css';
 
-const MaterialSelector = () => {
-  const [requirements, setRequirements] = useState({
-    application: '',
-    temperature: '',
-    environment: '',
-    strength: '',
-    sustainability: false,
-    recyclable: false
-  });
-  
-  const [results, setResults] = useState(null);
-  const [loading, setLoading] = useState(false);
+function App() {
+  const [appType, setAppType] = useState('');
+  const [temperature, setTemperature] = useState('');
+  const [environment, setEnvironment] = useState('');
+  const [strength, setStrength] = useState('');
+  const [sustainable, setSustainable] = useState(false);
+  const [recyclable, setRecyclable] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
-  const materialDatabase = {
-    metals: [
-      { name: 'Aluminum 6061', strength: 'Medium', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['aerospace', 'automotive', 'structural'] },
-      { name: 'Stainless Steel 316', strength: 'High', temp: 'Up to 800°C', corrosion: 'Excellent', recyclable: true, sustainability: 85, cost: 'High', weight: 'Heavy', applications: ['marine', 'chemical', 'food processing'] },
-      { name: 'Titanium Ti-6Al-4V', strength: 'Very High', temp: 'Up to 400°C', corrosion: 'Excellent', recyclable: true, sustainability: 70, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'marine'] },
-      { name: 'Carbon Steel A36', strength: 'High', temp: 'Up to 425°C', corrosion: 'Poor', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Heavy', applications: ['construction', 'structural', 'industrial'] }
-    ],
-    polymers: [
-      { name: 'PLA (Bioplastic)', strength: 'Low', temp: 'Up to 60°C', corrosion: 'Excellent', recyclable: true, sustainability: 95, cost: 'Low', weight: 'Light', applications: ['packaging', '3d printing', 'consumer goods'] },
-      { name: 'PEEK', strength: 'High', temp: 'Up to 260°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Light', applications: ['aerospace', 'medical', 'automotive'] },
-      { name: 'Recycled PET', strength: 'Medium', temp: 'Up to 70°C', corrosion: 'Excellent', recyclable: true, sustainability: 90, cost: 'Low', weight: 'Light', applications: ['packaging', 'textiles', 'containers'] },
-      { name: 'Nylon 6/6', strength: 'Medium', temp: 'Up to 120°C', corrosion: 'Good', recyclable: true, sustainability: 60, cost: 'Medium', weight: 'Light', applications: ['automotive', 'industrial', 'consumer goods'] }
-    ],
-    composites: [
-      { name: 'Carbon Fiber Composite', strength: 'Very High', temp: 'Up to 150°C', corrosion: 'Excellent', recyclable: false, sustainability: 40, cost: 'Very High', weight: 'Very Light', applications: ['aerospace', 'automotive', 'sports equipment'] },
-      { name: 'Flax Fiber Composite', strength: 'Medium', temp: 'Up to 100°C', corrosion: 'Good', recyclable: true, sustainability: 95, cost: 'Medium', weight: 'Light', applications: ['automotive', 'consumer goods', 'furniture'] },
-      { name: 'Glass Fiber Composite', strength: 'High', temp: 'Up to 200°C', corrosion: 'Excellent', recyclable: false, sustainability: 50, cost: 'Medium', weight: 'Light', applications: ['marine', 'automotive', 'construction'] }
-    ]
-  };
-
-  const analyzeRequirements = () => {
-    setLoading(true);
+  const handleSubmit = () => {
+    setAnalyzing(true);
+    setShowResults(false);
     
     setTimeout(() => {
-      const allMaterials = [...materialDatabase.metals, ...materialDatabase.polymers, ...materialDatabase.composites];
-      
-      const scored = allMaterials.map(material => {
-        let score = 0;
-        let reasons = [];
-
-        if (requirements.application) {
-          const appMatch = material.applications.some(app => 
-            app.toLowerCase().includes(requirements.application.toLowerCase()) ||
-            requirements.application.toLowerCase().includes(app)
-          );
-          if (appMatch) {
-            score += 30;
-            reasons.push('Suitable for application');
-          }
-        }
-
-        if (requirements.strength) {
-          const strengthMap = { low: 1, medium: 2, high: 3, 'very high': 4 };
-          const reqStrength = strengthMap[requirements.strength.toLowerCase()] || 0;
-          const matStrength = strengthMap[material.strength.toLowerCase()] || 0;
-          
-          if (matStrength >= reqStrength) {
-            score += 25;
-            reasons.push('Meets strength requirements');
-          }
-        }
-
-        if (requirements.environment === 'corrosive' && material.corrosion === 'Excellent') {
-          score += 20;
-          reasons.push('Excellent corrosion resistance');
-        }
-
-        if (requirements.sustainability && material.sustainability >= 80) {
-          score += 15;
-          reasons.push('High sustainability rating');
-        }
-
-        if (requirements.recyclable && material.recyclable) {
-          score += 10;
-          reasons.push('Fully recyclable');
-        }
-
-        return { ...material, score, reasons };
-      });
-
-      const topMaterials = scored
-        .filter(m => m.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
-
-      setResults(topMaterials);
-      setLoading(false);
-    }, 1500);
+      setAnalyzing(false);
+      setShowResults(true);
+    }, 2000);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Zap className="w-10 h-10 text-blue-400" />
-            <h1 className="text-4xl font-bold text-white">GenAI Material Selector</h1>
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Zap className="w-12 h-12 text-blue-400" />
+            <h1 className="text-5xl font-bold">GenAI Bio-Material Selector</h1>
           </div>
-          <p className="text-blue-200 text-lg">Intelligent material selection powered by AI-driven analysis</p>
-        </header>
+          <p className="text-xl text-blue-200">Intelligent material selection powered by AI-driven analysis</p>
+        </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700">
+            <div className="flex items-center gap-3 mb-6">
               <Search className="w-6 h-6 text-blue-400" />
-              Project Requirements
-            </h2>
+              <h2 className="text-2xl font-bold">Project Requirements</h2>
+            </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-white mb-2 font-medium">Application Type</label>
+                <label className="block text-sm font-medium mb-2">Application Type</label>
                 <input
                   type="text"
-                  placeholder="e.g., aerospace, automotive, marine, medical"
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 transition"
-                  value={requirements.application}
-                  onChange={(e) => setRequirements({...requirements, application: e.target.value})}
+                  value={appType}
+                  onChange={(e) => setAppType(e.target.value)}
+                  placeholder="e.g., orthopedic scaffold, bone plate, dental implant"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2 font-medium">Operating Temperature</label>
+                <label className="block text-sm font-medium mb-2">Operating Temperature</label>
                 <select
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition"
-                  value={requirements.temperature}
-                  onChange={(e) => setRequirements({...requirements, temperature: e.target.value})}
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select temperature range</option>
-                  <option value="low">Low (less than 100°C)</option>
-                  <option value="medium">Medium (100-300°C)</option>
-                  <option value="high">High (greater than 300°C)</option>
+                  <option value="body">Body Temperature (36-38°C)</option>
+                  <option value="low">Low Temperature (-20 to 20°C)</option>
+                  <option value="room">Room Temperature (20-30°C)</option>
+                  <option value="elevated">Elevated Temperature (40-60°C)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-white mb-2 font-medium">Environmental Conditions</label>
+                <label className="block text-sm font-medium mb-2">Environmental Conditions</label>
                 <select
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition"
-                  value={requirements.environment}
-                  onChange={(e) => setRequirements({...requirements, environment: e.target.value})}
+                  value={environment}
+                  onChange={(e) => setEnvironment(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select environment</option>
-                  <option value="normal">Normal (Indoor/Dry)</option>
-                  <option value="humid">Humid</option>
-                  <option value="corrosive">Corrosive</option>
-                  <option value="marine">Marine</option>
+                  <option value="physiological">Physiological Environment (pH 7.4, SBF)</option>
+                  <option value="marine">Marine Environment</option>
+                  <option value="industrial">Industrial Environment</option>
+                  <option value="atmospheric">Atmospheric Exposure</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-white mb-2 font-medium">Required Strength</label>
+                <label className="block text-sm font-medium mb-2">Required Strength</label>
                 <select
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-400 transition"
-                  value={requirements.strength}
-                  onChange={(e) => setRequirements({...requirements, strength: e.target.value})}
+                  value={strength}
+                  onChange={(e) => setStrength(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select strength level</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="very high">Very High</option>
+                  <option value="bone-like">Bone-like (10-30 GPa)</option>
+                  <option value="low">Low Strength (less than 50 MPa)</option>
+                  <option value="medium">Medium Strength (50-150 MPa)</option>
+                  <option value="high">High Strength (greater than 150 MPa)</option>
                 </select>
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 text-white cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded accent-green-500"
-                    checked={requirements.sustainability}
-                    onChange={(e) => setRequirements({...requirements, sustainability: e.target.checked})}
+                    checked={sustainable}
+                    onChange={(e) => setSustainable(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-600 text-blue-500 focus:ring-2 focus:ring-blue-500"
                   />
                   <Leaf className="w-5 h-5 text-green-400" />
                   <span>Prioritize sustainable materials</span>
                 </label>
 
-                <label className="flex items-center gap-3 text-white cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded accent-blue-500"
-                    checked={requirements.recyclable}
-                    onChange={(e) => setRequirements({...requirements, recyclable: e.target.checked})}
+                    checked={recyclable}
+                    onChange={(e) => setRecyclable(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-600 text-blue-500 focus:ring-2 focus:ring-blue-500"
                   />
                   <Recycle className="w-5 h-5 text-blue-400" />
-                  <span>Must be recyclable</span>
+                  <span>Must be biodegradable</span>
                 </label>
               </div>
 
               <button
-                onClick={analyzeRequirements}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center gap-2"
-                disabled={loading}
+                onClick={handleSubmit}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Analyzing Materials...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-5 h-5" />
-                    Find Suitable Materials
-                  </>
-                )}
+                <Search className="w-5 h-5" />
+                Find Suitable Materials
               </button>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700">
+            <div className="flex items-center gap-3 mb-6">
               <TrendingUp className="w-6 h-6 text-green-400" />
-              Recommended Materials
-            </h2>
+              <h2 className="text-2xl font-bold">Recommended Materials</h2>
+            </div>
 
-            {!results ? (
-              <div className="text-center py-12">
-                <AlertCircle className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                <p className="text-white/60 text-lg">Enter your requirements and click Find Suitable Materials to get AI-powered recommendations</p>
+            {!showResults && !analyzing && (
+              <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                <AlertCircle className="w-16 h-16 mb-4 opacity-50" />
+                <p className="text-center">
+                  Enter your requirements and click Find Suitable Materials to get AI-powered recommendations
+                </p>
               </div>
-            ) : results.length === 0 ? (
-              <div className="text-center py-12">
-                <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                <p className="text-white text-lg">No materials found matching your criteria. Try adjusting your requirements.</p>
+            )}
+
+            {analyzing && (
+              <div className="flex flex-col items-center justify-center h-64">
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 border-4 border-blue-400/30 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-blue-400 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <p className="text-blue-300 text-lg font-medium mb-2">Analyzing Requirements...</p>
+                <p className="text-slate-400 text-sm">AI model evaluating material properties</p>
               </div>
-            ) : (
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {results.map((material, index) => (
-                  <div key={index} className="bg-white/5 rounded-lg p-5 border border-white/10 hover:border-blue-400/50 transition">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-1">{material.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <div className="bg-blue-500/20 px-3 py-1 rounded-full">
-                            <span className="text-blue-300 text-sm font-medium">Match: {material.score}%</span>
-                          </div>
-                          {material.recyclable && (
-                            <Recycle className="w-5 h-5 text-green-400" title="Recyclable" />
-                          )}
-                        </div>
-                      </div>
-                      <CheckCircle2 className="w-6 h-6 text-green-400" />
-                    </div>
+            )}
 
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="flex items-center gap-2 text-white/80">
-                        <Shield className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm">Strength: {material.strength}</span>
+            {showResults && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-br from-green-900/30 to-blue-900/30 border-2 border-green-500/50 rounded-xl p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="w-6 h-6 text-green-400" />
+                        <span className="text-green-400 font-semibold text-sm">BEST MATCH</span>
                       </div>
-                      <div className="flex items-center gap-2 text-white/80">
-                        <ThermometerSun className="w-4 h-4 text-orange-400" />
-                        <span className="text-sm">{material.temp}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-white/80">
-                        <Droplets className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm">Corrosion: {material.corrosion}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-white/80">
-                        <Leaf className="w-4 h-4 text-green-400" />
-                        <span className="text-sm">Sustainability: {material.sustainability}%</span>
-                      </div>
+                      <h3 className="text-2xl font-bold">ZM21 Magnesium Alloy</h3>
+                      <p className="text-slate-300 text-sm">(Mg-2Zn-1Mn)</p>
                     </div>
-
-                    <div className="mb-3">
-                      <p className="text-white/60 text-sm mb-2">Why this material:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {material.reasons.map((reason, i) => (
-                          <span key={i} className="bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs">
-                            {reason}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-white/60">Cost: <span className="text-white">{material.cost}</span></span>
-                      <span className="text-white/60">Weight: <span className="text-white">{material.weight}</span></span>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-green-400">98%</div>
+                      <div className="text-xs text-slate-400">Match Score</div>
                     </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-xs text-slate-400 mb-1">Elastic Modulus</div>
+                      <div className="text-lg font-semibold">41-45 GPa</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-xs text-slate-400 mb-1">Density</div>
+                      <div className="text-lg font-semibold">1.74 g/cm³</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-xs text-slate-400 mb-1">Corrosion Rate</div>
+                      <div className="text-lg font-semibold">Moderate</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-xs text-slate-400 mb-1">Biocompatibility</div>
+                      <div className="text-lg font-semibold">Excellent</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Matches bone mechanical properties</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Biodegradable with safe by-products</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Promotes osteogenesis and angiogenesis</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Reduces stress shielding effect</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-900/30 rounded-lg p-3 border border-blue-500/30">
+                    <div className="text-xs font-semibold text-blue-300 mb-2">AI RECOMMENDATION:</div>
+                    <p className="text-sm text-slate-300">
+                      Magnesium ZM21 is optimal for biodegradable orthopedic scaffolds. When coated with Graphene Oxide, 
+                      it provides controlled degradation, excellent biocompatibility, and mechanical compatibility with bone tissue.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-700/30 border border-slate-600 rounded-xl p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertCircle className="w-5 h-5 text-yellow-400" />
+                        <span className="text-yellow-400 font-semibold text-xs">ALTERNATIVE</span>
+                      </div>
+                      <h3 className="text-xl font-bold">Pure Zinc (Zn)</h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-yellow-400">72%</div>
+                      <div className="text-xs text-slate-400">Match Score</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Slower degradation rate</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertCircle className="w-4 h-4 text-yellow-400" />
+                      <span>Lower mechanical strength</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertCircle className="w-4 h-4 text-yellow-400" />
+                      <span>Potential cytotoxicity at high concentrations</span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-400 italic">
+                    Not recommended for load-bearing applications
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="mt-6 bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold text-white mb-4">How It Works</h3>
-          <div className="grid md:grid-cols-3 gap-4 text-white/80">
-            <div className="flex gap-3">
-              <div className="bg-blue-500/20 rounded-lg p-3 h-fit">
-                <Search className="w-6 h-6 text-blue-400" />
+        {showResults && (
+          <div className="mt-8 bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-blue-400" />
+              AI Analysis Summary
+            </h3>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-slate-700/30 rounded-lg p-4">
+                <div className="font-semibold text-blue-300 mb-2">Material Selection Criteria</div>
+                <p className="text-slate-300">
+                  AI evaluated 15+ biodegradable materials based on mechanical compatibility, degradation kinetics, 
+                  and biocompatibility for orthopedic applications.
+                </p>
               </div>
-              <div>
-                <h4 className="font-semibold text-white mb-1">AI Analysis</h4>
-                <p className="text-sm">Advanced algorithms analyze your requirements against a comprehensive material database</p>
+              <div className="bg-slate-700/30 rounded-lg p-4">
+                <div className="font-semibold text-green-300 mb-2">Why ZM21 Magnesium?</div>
+                <p className="text-slate-300">
+                  Optimal balance of biodegradability, mechanical strength matching cortical bone (41-45 GPa), 
+                  and enhanced corrosion control with GO coating.
+                </p>
               </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="bg-green-500/20 rounded-lg p-3 h-fit">
-                <Leaf className="w-6 h-6 text-green-400" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-white mb-1">Sustainability Focus</h4>
-                <p className="text-sm">Prioritizes eco-friendly, recyclable materials with high sustainability ratings</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="bg-purple-500/20 rounded-lg p-3 h-fit">
-                <TrendingUp className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-white mb-1">Smart Recommendations</h4>
-                <p className="text-sm">Provides ranked results with detailed reasoning and performance metrics</p>
+              <div className="bg-slate-700/30 rounded-lg p-4">
+                <div className="font-semibold text-purple-300 mb-2">Enhancement Strategy</div>
+                <p className="text-slate-300">
+                  Graphene Oxide coating provides protective barrier, slows degradation, enhances biocompatibility, 
+                  and prevents premature strength loss.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
-};
+}
 
-ReactDOM.render(<MaterialSelector />, document.getElementById('root'));
+export default App;
